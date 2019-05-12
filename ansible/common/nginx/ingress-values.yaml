@@ -1,0 +1,22 @@
+rbac:
+  create: true
+controller:
+  config:
+    proxy-buffer-size: "16k"
+    body-size: "64m"
+    proxy-body-size: "10m"
+    enable-vts-status: "false"
+    hsts-include-subdomains: "false"
+    proxy-connect-timeout: "15"
+    proxy-read-timeout: "600"
+    proxy-send-timeout: "600"
+    server-name-hash-bucket-size: "256"
+  stats:
+    enabled: "true"
+    service:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/metrics"
+        prometheus.io/port: "9913"
+  metrics:
+    enabled: true

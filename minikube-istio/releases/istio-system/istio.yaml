@@ -1,0 +1,68 @@
+---
+apiVersion: flux.weave.works/v1beta1
+kind: HelmRelease
+metadata:
+  name: istio
+  namespace: istio-system
+  annotations:
+    flux.weave.works/automated: 'false'
+spec:
+  releaseName: istio
+  chart:
+    git: git@github.com:181192/gitops-multicluster-template
+    path: charts/istio
+    ref: master
+  values:
+    gateways:
+      enabled: true
+      istio-egressgateway:
+        enabled: false
+      istio-ingressgateway:
+        sds:
+          enabled: true
+    sidecarInjectorWebhook:
+      enabled: true
+    galley:
+      enabled: true
+    mixer:
+      enabled: true
+      policy:
+        enabled: true
+      telemetry:
+        enabled: true
+    pilot:
+      enabled: true
+    security:
+      enabled: true
+    nodeagent:
+      enabled: false
+    grafana:
+      enabled: false
+    prometheus:
+      enabled: false
+    servicegraph:
+      enabled: false
+    tracing:
+      enabled: true
+    kiali:
+      enabled: true
+      prometheusAddr: http://prometheus-prometheus-oper-prometheus.monitoring.svc.cluster.local:9090
+    istio_cni:
+      enabled: false
+    istiocoredns:
+      enabled: false
+    certmanager:
+      enabled: true
+      email: cert@stacc.com
+    global:
+      hub: docker.io/istio
+      tag: 1.1.5
+      proxy:
+        privileged: true
+        autoInject: enabled
+        logLevel: "error"
+      enableTracing: true
+      mtls:
+        enabled: false
+      outboundTrafficPolicy:
+        mode: ALLOW_ANY

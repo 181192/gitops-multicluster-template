@@ -1,0 +1,55 @@
+---
+- name: Install helm
+  shell: |
+    kubectl apply -f common/tiller-rbac.yaml
+    helm init --service-account tiller --wait --force-upgrade --tiller-connection-timeout 600
+
+- name: Install MetalLB on Minikube
+  when: 'cluster_environments == "minikube-istio" or cluster_environments == "minikube"'
+  shell: |
+    kubectl apply -f https://raw.githubusercontent.com/google/metallb/v0.7.3/manifests/metallb.yaml
+  register: command_result
+  failed_when: "'Error' in command_result.stderr"
+
+- name: Create flux namespace
+  shell: |
+    kubectl apply -f common/namespaces/flux.yaml
+  register: command_result
+  failed_when: "'Error' in command_result.stderr"
+
+- name: Create istio-system namespace
+  when: '"istio-system" in k8s.extensions'
+  shell: |
+    kubectl apply -f common/namespaces/istio-system.yaml
+  register: command_result
+  failed_when: "'Error' in command_result.stderr"
+
+- name: Create CRD's
+  shell: |
+    kubectl apply -f common/crd
+  register: command_result
+  failed_when: "'Error' in command_result.stderr"
+
+- name: Create istio CRD's
+  when: '"istio-system" in k8s.extensions'
+  shell: |
+    helm upgrade istio-init \
+      --install --namespace istio-system ../charts/istio-init --set certmanager.enabled=false
+  register: command_result
+  failed_when: "'Error' in command_result.stderr"
+
+- name: Install nginx-ingress
+  when: '"nginx-ingress" in k8s.extensions'
+  shell: |
+    helm upgrade nginx-ingress \
+        --install --namespace kube-system stable/nginx-ingress --values common/nginx/ingress-values.yaml
+    kubectl apply -f common/nginx/servicemonitor.yaml
+
+- name: Install flux
+  when: '"flux" in k8s.extensions'
+  shell: |
+    helm repo add weaveworks https://weaveworks.github.io/flux
+    helm upgrade flux \
+        --install --namespace flux --values=common/flux/values.{{ cluster_environments }}.yaml weaveworks/flux
+  register: command_result
+  failed_when: "'Error' in command_result.stderr"

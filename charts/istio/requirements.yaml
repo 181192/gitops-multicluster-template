@@ -1,0 +1,57 @@
+dependencies:
+  - name: sidecarInjectorWebhook
+    version: 1.1.0
+    repository: file://subcharts/sidecarInjectorWebhook
+    condition: sidecarInjectorWebhook.enabled
+  - name: security
+    version: 1.1.0
+    repository: file://subcharts/security
+    condition: security.enabled
+  - name: gateways
+    version: 1.1.0
+    repository: file://subcharts/gateways
+    condition: gateways.enabled
+  - name: mixer
+    version: 1.1.0
+    repository: file://subcharts/mixer
+    condition: or mixer.policy.enabled mixer.telemetry.enabled
+  - name: nodeagent
+    version: 1.1.0
+    repository: file://subcharts/nodeagent
+    condition: nodeagent.enabled
+  - name: pilot
+    version: 1.1.0
+    repository: file://subcharts/pilot
+    condition: pilot.enabled
+  - name: grafana
+    version: 1.1.0
+    repository: file://subcharts/grafana
+    condition: grafana.enabled
+  - name: prometheus
+    version: 1.1.0
+    repository: file://subcharts/prometheus
+    condition: prometheus.enabled
+  - name: servicegraph
+    version: 1.1.0
+    repository: file://subcharts/servicegraph
+    condition: servicegraph.enabled
+  - name: tracing
+    version: 1.1.0
+    repository: file://subcharts/tracing
+    condition: tracing.enabled
+  - name: galley
+    version: 1.1.0
+    repository: file://subcharts/galley
+    condition: galley.enabled
+  - name: kiali
+    version: 1.1.0
+    repository: file://subcharts/kiali
+    condition: kiali.enabled
+  - name: istiocoredns
+    version: 1.1.0
+    repository: file://subcharts/istiocoredns
+    condition: istiocoredns.enabled
+  - name: certmanager
+    version: 1.1.0
+    repository: file://subcharts/certmanager
+    condition: certmanager.enabled

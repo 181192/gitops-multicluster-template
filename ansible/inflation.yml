@@ -1,0 +1,26 @@
+- name: KubernetesDeployment
+  hosts: localhost
+  gather_facts: false
+  vars_files:
+    - vars/base.yml
+    - vars/environments/{{ dp }}.yml
+
+  tasks:
+    - name: vars check
+      fail: msg="{{ item }} is wrong, please fix this"
+      when:
+        - vars[item] is undefined
+      with_items:
+        - dp
+        - k8s
+      tags: [ always ]
+
+    - set_fact:
+        deploymentPrefix: "{{ dp }}"
+
+    - name: Dump all vars
+      action: template src=vars/dbg-vars.j2 dest={{ playbook_dir }}/logs/{{ dp }}.var
+      tags: [ debug ]
+
+    - include_tasks: "common/include.yml"
+      tags: [ k8s ]

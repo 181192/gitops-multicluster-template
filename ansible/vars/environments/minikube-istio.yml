@@ -1,0 +1,6 @@
+cluster_environments: minikube-istio
+
+k8s:
+  extensions:
+  - flux
+  - istio-system

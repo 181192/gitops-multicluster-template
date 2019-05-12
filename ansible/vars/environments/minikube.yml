@@ -1,0 +1,6 @@
+cluster_environments: minikube
+
+k8s:
+  extensions:
+  - flux
+  - nginx-ingress

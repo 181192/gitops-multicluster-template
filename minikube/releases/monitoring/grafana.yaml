@@ -1,0 +1,72 @@
+---
+apiVersion: flux.weave.works/v1beta1
+kind: HelmRelease
+metadata:
+  name: grafana
+  namespace: monitoring
+  annotations:
+    flux.weave.works/automated: 'true'
+    flux.weave.works/tag.chart-image: glob:6.*
+spec:
+  releaseName: grafana
+  chart:
+    git: git@github.com:181192/gitops-multicluster-template
+    path: charts/grafana
+    ref: master
+  values:
+    image:
+      repository: grafana/grafana
+      tag: 6.1.6
+    adminUser: admin
+    adminPassword: Wsdfvf8Q4jtTRfhcZTGW4
+    mysql:
+      enabled: false
+      passwordSecret: mysql
+    ingress:
+      enabled: false
+    istio:
+      enabled: true
+      hostName: "*"
+    persistence:
+      enabled: false
+    dashboardProviders:
+      dashboardproviders.yaml:
+        apiVersion: 1
+        providers:
+        - name: 'nginx'
+          orgId: 1
+          folder: 'Nginx'
+          type: file
+          disableDeletion: false
+          editable: true
+          options:
+            path: /var/lib/grafana/dashboards/nginx
+        - name: 'kubernetes'
+          orgId: 1
+          folder: 'Kubernetes'
+          type: file
+          disableDeletion: false
+          editable: true
+          options:
+            path: /var/lib/grafana/dashboards/kubernetes
+    dashboards:
+      nginx:
+        nginx-ingress-dashboard:
+          file: dashboards/nginx/nginx-ingress-dashboard.json
+      kubernetes:
+        capacity-planning-dashboard:
+          file: dashboards/kubernetes/capacity-planning-dashboard.json
+        cluster-health-dashboard:
+          file: dashboards/kubernetes/cluster-health-dashboard.json
+        cluster-status-dashboard:
+          file: dashboards/kubernetes/cluster-status-dashboard.json
+        control-plane-status-dashboard:
+          file: dashboards/kubernetes/control-plane-status-dashboard.json
+        deployments-dashboard:
+          file: dashboards/kubernetes/deployments-dashboard.json
+        pods-dashboard:
+          file: dashboards/kubernetes/pods-dashboard.json
+        resource-requests-dashboard:
+          file: dashboards/kubernetes/resource-requests-dashboard.json
+        statefulsets-dashboard:
+          file: dashboards/kubernetes/statefulsets-dashboard.json

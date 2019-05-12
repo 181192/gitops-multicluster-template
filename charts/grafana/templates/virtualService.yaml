@@ -1,0 +1,26 @@
+{{- if .Values.istio.enabled }}
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: {{ include "grafana.fullname" . }}
+  namespace: istio-system
+  labels:
+    app.kubernetes.io/name: {{ include "grafana.name" . }}
+    helm.sh/chart: {{ include "grafana.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  hosts:
+  - "{{ .Values.istio.hostName }}"
+  gateways:
+  - istio-ingressgateway.istio-system.svc.cluster.local
+  http:
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        port:
+          number: {{ .Values.service.port }}
+        host: "{{ include "grafana.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local"
+{{- end -}}

@@ -1,0 +1,23 @@
+---
+apiVersion: flux.weave.works/v1beta1
+kind: HelmRelease
+metadata:
+  name: grafana-loki
+  namespace: monitoring
+  annotations:
+    flux.weave.works/automated: 'false'
+spec:
+  releaseName: grafana-loki
+  chart:
+    git: git@github.com:181192/gitops-multicluster-template
+    path: charts/loki-stack
+    ref: master
+  values:
+    loki:
+      image:
+        repository: grafana/loki
+        tag: master-ceffcb7
+    promtail:
+      image:
+        repository: grafana/promtail
+        tag: master-ceffcb7

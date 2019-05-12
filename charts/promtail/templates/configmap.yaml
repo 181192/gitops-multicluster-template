@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "promtail.fullname" . }}
+  labels:
+    app: {{ template "promtail.name" . }}
+    chart: {{ template "promtail.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+data:
+  promtail.yaml: |
+    {{- tpl (toYaml .Values.config | nindent 4 ) . }}

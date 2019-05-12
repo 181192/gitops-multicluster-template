@@ -1,0 +1,289 @@
+---
+apiVersion: flux.weave.works/v1beta1
+kind: HelmRelease
+metadata:
+  name: prometheus
+  namespace: monitoring
+  annotations:
+    flux.weave.works/automated: 'false'
+spec:
+  releaseName: prometheus
+  chart:
+    repository: https://kubernetes-charts.storage.googleapis.com/
+    name: prometheus-operator
+    version: 5.0.11
+  values:
+    nameOverride: ""
+    fullnameOverride: ""
+
+    defaultRules:
+      create: true
+
+    global:
+      rbac:
+        create: true
+        pspEnabled: true
+    alertmanager:
+      enabled: true
+      serviceAccount:
+        create: true
+        name: ""
+      podDisruptionBudget:
+        enabled: false
+
+      config:
+        global:
+          resolve_timeout: 5m
+        route:
+          group_by: ['job']
+          group_wait: 30s
+          group_interval: 5m
+          repeat_interval: 12h
+          receiver: slack_s
+          routes:
+          - match:
+              alertname: DeadMansSwitch
+            receiver: slack_s
+        receivers:
+        - name: slack_s
+          slack_configs:
+            - api_url: https://hooks.slack.com/services/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
+              channel: '#s'
+      ingress:
+        enabled: false
+      service:
+        nodePort: 30903
+        type: ClusterIP
+      serviceMonitor:
+        selfMonitor: true
+      alertmanagerSpec:
+        image:
+          repository: quay.io/prometheus/alertmanager
+          tag: v0.15.3
+        logLevel: info
+        replicas: 1
+        retention: 120h
+        storage:
+          volumeClaimTemplate:
+            spec:
+              storageClassName: standard
+              accessModes: ["ReadWriteOnce"]
+              resources:
+                requests:
+                  storage: 10Gi
+        externalUrl:
+        routePrefix: /
+        paused: false
+        podAntiAffinity: ""
+        securityContext:
+          runAsNonRoot: false
+          runAsUser: 1000
+          fsGroup: 2000
+        listenLocal: false
+        priorityClassName: ""
+
+    grafana:
+      enabled: false
+
+    kubeApiServer:
+      enabled: false
+
+    kubelet:
+      enabled: true
+      namespace: kube-system
+
+      serviceMonitor:
+        https: false
+
+    kubeControllerManager:
+      enabled: false
+
+    coreDns:
+      enabled: true
+      service:
+        port: 9153
+        targetPort: 9153
+        selector:
+          k8s-app: coredns
+
+    kubeDns:
+      enabled: false
+
+    kubeEtcd:
+      enabled: false
+
+    kubeScheduler:
+      enabled: false
+
+    kubeStateMetrics:
+      enabled: true
+
+    kube-state-metrics:
+      rbac:
+        create: true
+
+    nodeExporter:
+      enabled: true
+      jobLabel: jobLabel
+
+    prometheus-node-exporter:
+      podLabels:
+        jobLabel: node-exporter
+      extraArgs:
+        - --collector.filesystem.ignored-mount-points=^/(dev|proc|sys|var/lib/docker/.+)($|/)
+        - --collector.filesystem.ignored-fs-types=^(autofs|binfmt_misc|cgroup|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|mqueue|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|sysfs|tracefs)$
+
+    prometheusOperator:
+      enabled: true
+      serviceAccount:
+        create: true
+        name: ""
+      service:
+        nodePort: 38080
+        type: ClusterIP
+      createCustomResource: false
+      cleanupCustomResource: false
+      kubeletService:
+        enabled: true
+        namespace: kube-system
+      serviceMonitor:
+        selfMonitor: true
+      securityContext:
+        runAsNonRoot: false
+        runAsUser: 65534
+      image:
+        repository: quay.io/coreos/prometheus-operator
+        tag: v0.26.0
+        pullPolicy: IfNotPresent
+      configmapReloadImage:
+        repository: quay.io/coreos/configmap-reload
+        tag: v0.0.1
+      prometheusConfigReloaderImage:
+        repository: quay.io/coreos/prometheus-config-reloader
+        tag: v0.26.0
+      hyperkubeImage:
+        repository: gcr.io/google-containers/hyperkube
+        tag: v1.12.1
+        pullPolicy: IfNotPresent
+
+    prometheus:
+      enabled: true
+      serviceAccount:
+        create: true
+        name: ""
+      service:
+        nodePort: 39090
+        type: ClusterIP
+      rbac:
+        roleNamespaces:
+          - kube-system
+      podDisruptionBudget:
+        enabled: false
+        minAvailable: 1
+        maxUnavailable: ""
+
+      ingress:
+        enabled: false
+
+      serviceMonitor:
+        selfMonitor: true
+
+      prometheusSpec:
+        scrapeInterval: ""
+        evaluationInterval: ""
+        listenLocal: false
+        image:
+          repository: quay.io/prometheus/prometheus
+          tag: v2.5.0
+        externalUrl: ""
+        ruleSelectorNilUsesHelmValues: true
+        serviceMonitorSelectorNilUsesHelmValues: true
+        retention: 5d
+        paused: false
+        replicas: 1
+        logLevel: info
+        routePrefix: /
+        podAntiAffinity: ""
+        # secrets:
+        #   - istio.default
+        storageSpec:
+          volumeClaimTemplate:
+            spec:
+              storageClassName: standard
+              accessModes: ["ReadWriteOnce"]
+              resources:
+                requests:
+                  storage: 10Gi
+        securityContext:
+          runAsNonRoot: false
+          runAsUser: 1000
+          fsGroup: 2000
+        priorityClassName: ""
+        additionalScrapeConfigsExternal: false
+        additionalScrapeConfigs:
+        - job_name: 'istio-mesh'
+          scrape_interval: 5s
+          kubernetes_sd_configs:
+          - role: endpoints
+            namespaces:
+              names:
+              - istio-system
+          relabel_configs:
+          - source_labels: [__meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+            action: keep
+            regex: istio-telemetry;prometheus
+        - job_name: 'envy'
+          scrape_interval: 5s
+          kubernetes_sd_configs:
+          - role: endpoints
+            namespaces:
+              names:
+              - istio-system
+          relabel_configs:
+          - source_labels: [__meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+            action: keep
+            regex: istio-statsd-prom-bridge;statsd-prom
+        - job_name: 'istio-policy'
+          scrape_interval: 5s
+          kubernetes_sd_configs:
+          - role: endpoints
+            namespaces:
+              names:
+              - istio-system
+          relabel_configs:
+          - source_labels: [__meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+            action: keep
+            regex: istio-policy;http-monitoring
+        - job_name: 'istio-telemetry'
+          scrape_interval: 5s
+          kubernetes_sd_configs:
+          - role: endpoints
+            namespaces:
+              names:
+              - istio-system
+          relabel_configs:
+          - source_labels: [__meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+            action: keep
+            regex: istio-telemetry;http-monitoring
+        - job_name: 'pilot'
+          scrape_interval: 5s
+          kubernetes_sd_configs:
+          - role: endpoints
+            namespaces:
+              names:
+              - istio-system
+          relabel_configs:
+          - source_labels: [__meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+            action: keep
+            regex: istio-pilot;http-monitoring
+        - job_name: 'galley'
+          scrape_interval: 5s
+          kubernetes_sd_configs:
+          - role: endpoints
+            namespaces:
+              names:
+              - istio-system
+          relabel_configs:
+          - source_labels: [__meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+            action: keep
+            regex: istio-galley;http-monitoring

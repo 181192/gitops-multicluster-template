@@ -1,0 +1,5 @@
+*.retry
+*.tgz
+!charts/istio/charts/*.tgz
+identity
+sealed-secrets-key.yaml

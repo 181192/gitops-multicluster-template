@@ -1,0 +1,19 @@
+{{- if .Values.certificate.enabled -}}
+apiVersion: certmanager.k8s.io/v1alpha1
+kind: Issuer
+metadata:
+  name: certificate-issuer
+  namespace: {{ .Release.Namespace }}
+spec:
+  {{- if eq .Values.issuer.type "ca" }}
+  ca:
+    secretName: {{.Values.issuer.ca.secretName}}
+  {{- else }}
+  acme:
+    server: {{ default "https://acme-v02.api.letsencrypt.org/directory" .Values.issuer.acme.server }}
+    email: {{ default "flow@stacc.com" .Values.issuer.acme.email }}
+    privateKeySecretRef:
+      name: {{ default "letsencrypt-prod" .Values.issuer.acme.privateKeySecretRef.name}}
+    http01: {{ .Values.issuer.acme.http01 | toJson }}
+  {{- end }}
+{{- end }}
