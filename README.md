@@ -1,5 +1,5 @@
 # Flux GitOps multicluster template
->This is a template project for inspiration on how to do GitOps. For more information about GitOps see notes from [my talk about IaC and GitOps](https://github.com/stacc-as/infrastructure-as-code/tree/master/kalli). Also see the [Flux repository](https://github.com/weaveworks/flux) itself, and @stefanprodan [gitops-helm setup](https://github.com/stefanprodan/gitops-helm).
+>This is a template project for inspiration on how to do GitOps. For more information about GitOps see notes from [my talk about IaC and GitOps](https://github.com/stacc-as/infrastructure-as-code/tree/master/kalli). Also see the [Flux repository](https://github.com/weaveworks/flux) itself, and [stefanprodan](https://github.com/stefanprodan) usage of Flux Helm Operator [gitops-helm setup](https://github.com/stefanprodan/gitops-helm).
 
 ## #TL;DR
 Ansible is used to setup and configure a new cluster. The ansible script will install some CRD's and the Flux Operator itself. After Flux's public SSH key is added to a Git account it will automatically start pulling from the Git repository and setup everything. The Flux operator will tag the Git log and commit back for changes it does etc. updating a Docker image version.
